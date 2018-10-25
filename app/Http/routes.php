@@ -1,55 +1,56 @@
 <?php
 
-/*
-|--------------------------------------------------------------------------
-| Application Routes
-|--------------------------------------------------------------------------
-|
-| This route group applies the "web" middleware group to every route
-| it contains. The "web" middleware group is defined in your HTTP
-| kernel and includes session state, CSRF protection, and more.
-|
-*/
+use App\Task;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
-// use App\Task;
-// use Illuminate\Http\Request;
+Route::group(['middleware' => ['api']], function () {
 
-Route::group(['namespace' => 'api'], function () {
-    /**
-     * Show Task Dashboard
-     */
-    Route::get('/', function () {
-      return 'hello world';
-        // return Task::orderBy('created_at', 'asc')->get()
-    });
+  Route::get('/tasks', function () {
+    try {
+      $tasks = Task::orderBy('created_at', 'asc')->get();
+      return response()->json([
+        'status' => 'success',
+        'tasks' => $tasks,
+      ], 200);
+    } catch (Exception $e) {
+      return response()->json([
+        'status' => 'Error',
+        'message' => $e->getMessage(),
+      ], 409);
+    }
+  });
 
-    // /**
-    //  * Add New Task
-    //  */
-    // Route::post('/task', function (Request $request) {
-    //     $validator = Validator::make($request->all(), [
-    //         'name' => 'required|max:255',
-    //     ]);
-    //
-    //     if ($validator->fails()) {
-    //         return redirect('/')
-    //             ->withInput()
-    //             ->withErrors($validator);
-    //     }
-    //
-    //     $task = new Task;
-    //     $task->name = $request->name;
-    //     $task->save();
-    //
-    //     return redirect('/');
-    // });
-    //
-    // /**
-    //  * Delete Task
-    //  */
-    // Route::delete('/task/{id}', function ($id) {
-    //     Task::findOrFail($id)->delete();
-    //
-    //     return redirect('/');
-    // });
+  Route::post('/task', function (Request $request) {
+    try {
+      $task = new Task;
+      $task->name = $request->name;
+      $task->save();
+
+      return response()->json([
+        'status' => 'success',
+        'task' => $task,
+      ], 200);
+    } catch (Exception $e) {
+      return response()->json([
+        'status' => 'Error',
+        'message' => $e->getMessage(),
+      ], 409);
+    }
+  });
+
+  Route::post('/task/{id}/delete', function ($id) {
+    try {
+      Task::findOrFail($id)->delete();
+      return response()->json([
+        'status' => 'success',
+      ], 200);
+    } catch (Exception $e) {
+      return response()->json([
+        'status' => 'Error',
+        'message' => $e->getMessage(),
+      ], 409);
+    }
+  });
+
 });
